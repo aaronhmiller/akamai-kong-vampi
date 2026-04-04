@@ -1,0 +1,47 @@
+services:
+  kong-database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kongpass
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  kong-migration:
+    image: aaronhmiller/kong-akamai:3.9.1    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+                                                                            KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    restart: on-failure
+
+  kong:
+    image: aaronhmiller/kong-akamai:3.9.1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      KONG_PLUGINS: bundled,nonamesecurity
+      KONG_DATABASE: postgres
+      KONG_PROXY_LISTEN: "0.0.0.0:80"                                                                    KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kongpass
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "0.0.0.0:8001"
+    ports:
+      - "80:80"   # proxy
+      - "8001:8001"   # admin API
+    depends_on:                                                                                          kong-migration:
+        condition: service_completed_successfully
