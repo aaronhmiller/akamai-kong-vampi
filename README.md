@@ -16,3 +16,28 @@ An Akamai API Security demo using Kong and Vampi
   -t your-registry/kong-akamai:3.9.1 \
   .
   ```
+* adding service example:
+```
+curl -s -X POST http://localhost:8001/services \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "passthru-5000",
+    "url": "http://host.docker.internal:5000"
+  }'
+```
+* adding route example:
+```
+curl -s -X POST http://localhost:8001/services/passthru-5000/routes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "passthru-5000-route",
+    "paths": ["/"],
+    "strip_path": false,
+    "preserve_host": true
+  }'
+```
+* associate the plugin with the service example:
+```
+  curl -X POST --url http://<kong-domain>:<kong-port>/services/<your-kong service-id>/plugins/ \
+--data "name=nonamesecurity"
+```
