@@ -3,6 +3,7 @@ An Akamai API Security demo using Kong and Vampi
 
 ## Overview
 * On an EC2 box, setup Docker
+* Fire up Vampi `docker run --name vampi -d -p 5000:5000 erev0s/vampi:latest`
 * From Akamai console, download the Kong plugin configuration
 * Build the image
 * Run `docker compose up -d`
